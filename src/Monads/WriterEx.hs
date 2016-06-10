@@ -8,8 +8,10 @@ module WriterEx where
 --}
 
 import           Control.Monad.Writer
+import qualified Data.Char            as C
 -- import qualified Data.List            as L
 
+----------------------------------------------------------------------
 logNumber :: Int -> Writer [String] Int
 logNumber x = writer (x, ["Got the number: " ++ show x])
 
@@ -20,6 +22,7 @@ multiply = do
     tell ["Now multiplying the numbers"]
     return (a * b)
 
+----------------------------------------------------------------------
 -- GCD of 2 numbers with logging
 gcdx :: Int -> Int -> Writer [String] Int
 gcdx a b
@@ -39,6 +42,7 @@ gcdx a b
 -- "8 mod 2 = 0"
 -- "Finished computing with 2"
 
+----------------------------------------------------------------------
 --factorial with logging
 fact :: Integer -> Writer [String] Integer
 fact x
@@ -65,6 +69,33 @@ fact' n = do
     tell $ Sum 1
     return s
 
+----------------------------------------------------------------------
+-- fibonacci series
+fib :: Int -> Writer [String] Int
+fib n = do
+    tell ["fib " ++ show n ++ " invoked"]
+    if n < 2
+       then do
+            tell ["fib " ++ show n ++ " = 1"]
+            return 1
+       else do
+            a <- fib (n - 1)
+            b <- fib (n - 2)
+            tell ["fib " ++ show n ++ " = " ++ show (a + b)]
+            return (a + b)
+
+-- λ> mapM_ print $ snd $ runWriter (fib 3)
+-- "fib 3 invoked"
+-- "fib 2 invoked"
+-- "fib 1 invoked"
+-- "fib 1 = 1"
+-- "fib 0 invoked"
+-- "fib 0 = 1"
+-- "fib 2 = 2"
+-- "fib 1 invoked"
+-- "fib 1 = 1"
+-- "fib 3 = 3"
+----------------------------------------------------------------------
 -- Collatz Sequence
 collatzSeq :: Integer -> Writer [Integer] Integer
 collatzSeq n = do
@@ -88,6 +119,7 @@ collatz n
       -- tell [show n ++  " is odd, computing (3 * " ++ show n ++ " + 1)"]
       return (3 * n + 1)
 
+----------------------------------------------------------------------
 --
 -- Towers Of Hanoi
 --
@@ -128,3 +160,47 @@ showMoves (n, moves) = do
 
 hanoi :: Int -> IO ()
 hanoi n = showMoves $ runWriter (toh A B C n)
+
+-- λ> hanoi 3
+-- --------
+-- Solved the TOH with 7 moves!!!
+-- "A -> C"
+-- "A -> B"
+-- "C -> B"
+-- "A -> C"
+-- "B -> A"
+-- "B -> C"
+-- "A -> C"
+--  --------
+----------------------------------------------------------------------
+-- powers of a number
+binPow :: Int -> Int -> Writer String Int
+binPow 0 _ = return 1
+binPow n x
+    | even n = binPow (n `div` 2) x >>= \y ->
+               tell ("Square " ++ show y ++ "\n") >>
+               return (y * y)
+    | otherwise = binPow (n - 1) x >>= \y ->
+               tell ("Multiply " ++ show x ++ " and " ++ show y ++ "\n") >>
+               return (x * y)
+
+showPow :: IO ()
+showPow = putStrLn $ execWriter $ binPow 3 2 >> binPow 3 7
+
+-- λ> showPow
+-- Multiply 2 and 1
+-- Square 2
+-- Multiply 2 and 4
+-- Multiply 7 and 1
+-- Square 7
+-- Multiply 7 and 49
+----------------------------------------------------------------------
+
+changeLogCase :: Char -> Bool -> ((Char, Bool), String)
+changeLogCase c b
+    | b         = ((C.toLower c, False), "Lower ")
+    | otherwise = ((C.toUpper c, True), "Upper ")
+
+-- construct a Writer on the result of the function
+logCase :: Char -> Bool -> Writer String (Char, Bool)
+logCase c b = writer (changeLogCase c b)

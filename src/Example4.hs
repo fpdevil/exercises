@@ -18,3 +18,5 @@ pascalsRows = iterate binomialCoefficients [1]
 
 pascalsTriangle :: Int -> IO ()
 pascalsTriangle n = mapM_ print $ take n pascalsRows
+
+----------------------------------------------------------------------

@@ -34,6 +34,7 @@ addDrink "jelly" = ("ice cream", Sum 21)
 addDrink "soup"  = ("potatoes", Sum 18)
 addDrink _       = ("vodka", Sum 33)
 
+----------------------------------------------------------------------
 --
 -- The Writer monad depends on two types. a is the type of the data
 -- stored into the monad, and w is the type of the additional information
@@ -85,3 +86,4 @@ compute = fst . runWriter
 -- Get only the log associated with the value
 logs :: Writer w a -> w
 logs = snd . runWriter
+
