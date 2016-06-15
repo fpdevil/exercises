@@ -1,0 +1,162 @@
+﻿module Fp09 where
+--import Control.Monad.Instances
+--import Control.Applicative
+--import Control.Monad.Identity
+--import Data.Monoid
+import Data.Maybe
+import Control.Monad.Writer
+import Control.Monad.Reader
+import Control.Monad.State
+
+-----------------------------------------------------
+-- Монада IO
+
+main = do
+  putStrLn "What is your name?"
+  name <- getLine'
+  putStrLn ("Nice to meet you, " ++ name ++ "!")
+
+
+getLine' :: IO String
+getLine' = do 
+  c <- getChar
+  if c == '\n' then
+    return []
+  else do 
+    cs <- getLine'
+    return (c:cs)
+    
+putStr' :: String -> IO ()
+putStr' = sequence_ . map putChar
+
+putStr'' :: String -> IO ()
+putStr'' = mapM_ putChar
+
+-----------------------------------------------------
+-- Монада Reader
+
+-- тип окружения - r
+simpleReader :: Show r => Reader r String
+simpleReader =
+  reader (\e -> "Environment is " ++ show e)
+
+-- *Fp09> runReader simpleReader 42
+-- "Environment is 42"
+
+type User = String
+type Password = String
+type UsersTable = [(User,Password)]
+
+pwds :: UsersTable
+pwds = [("Bill","123456"),("Ann","qwerty"),("John","2sRqf78P")]
+
+-- возвращает имя первого пользователя в списке
+firstUser :: Reader UsersTable String
+firstUser = do
+  e <- ask
+  let name = fst (head e)
+  return name
+
+-- *Fp09> runReader firstUser pwds
+-- "Bill"
+-- *Fp09> runReader firstUser []
+-- "*** Exception: Prelude.head: empty list
+
+-- возвращает длину пароля пользователя  или -1, если такого пользователя нет
+getPwdLen :: User -> Reader UsersTable Int
+getPwdLen person = do
+  mbPwd <- asks $ lookup person 
+  let mbLen = fmap length mbPwd
+  let len = fromMaybe (-1) mbLen
+  return len
+
+-- *Fp09> runReader (getPwdLen "Ann") pwds
+-- 6
+-- *Fp09> runReader (getPwdLen "Ann") []
+-- -1
+
+
+usersCount :: Reader UsersTable Int
+usersCount = asks length
+
+localTest :: Reader UsersTable (Int,Int)
+localTest = do
+  count1 <- usersCount 
+  count2 <- local (("Mike","1"):) usersCount 
+  return (count1, count2)
+
+-- *Fp09> runReader localTest pwds
+-- (3,4)
+
+
+-----------------------------------------------------
+-- Монада Writer
+
+-- runWriter (return 3 :: Writer String Int)  
+
+type Vegetable = String
+type Price = Double
+type Qty = Double
+type Cost = Double
+type PriceList = [(Vegetable,Price)]
+
+prices :: PriceList
+prices = [("Potato",13),("Tomato",55),("Apple",48)]
+
+-- tell позволяет задать вывод
+addVegetable :: Vegetable -> Qty -> Writer (Sum Cost) (Vegetable, Price)
+addVegetable veg qty = do
+  let pr = fromMaybe 0 $ lookup veg prices
+  let cost = qty * pr
+  tell $ Sum cost
+  return (veg, pr)
+-- *Fp09> runWriter $ addVegetable "Apple" 100
+-- (("Apple",48.0),Sum {getSum = 4800.0})
+  
+-- суммарная стоимость копится <<за кадром>>
+myCart0 = do
+  x1 <- addVegetable "Potato" 3.5
+  x2 <- addVegetable "Tomato" 1.0
+  x3 <- addVegetable "AGRH!!" 1.6
+  return [x1,x2,x3]
+-- *Fp09> runWriter myCart0
+-- ([("Potato",13.0),("Tomato",55.0),("AGRH!!",0.0)],Sum {getSum = 100.5})
+
+-- если хотим знать промежуточные стоимости, используем listen
+myCart1 = do
+  x1 <- listen $ addVegetable "Potato" 3.5
+  x2 <- listen $ addVegetable "Tomato" 1.0
+  x3 <- listen $ addVegetable "AGRH!!" 1.6
+  return [x1,x2,x3]
+-- *Fp09> runWriter myCart1
+-- ([(("Potato",13.0),Sum {getSum = 45.5}),(("Tomato",55.0),Sum {getSum = 55.0}),((
+-- "AGRH!!",0.0),Sum {getSum = 0.0})],Sum {getSum = 100.5})
+
+--  (pass технический хелпер для censor)
+--  для модификации лога используют censor :: (w -> w) -> Writer a -> Writer a
+myCart0' = censor (discount 10.0) myCart0
+
+-- бизнес-логика:)
+discount proc (Sum x) = Sum $ if x < 100 then x
+                              else x * (100.0 - proc) / 100.0
+-- *Fp09> runWriter myCart0'
+-- ([("Potato",13.0),("Tomato",55.0),("AGRH!!",0.0)],Sum {getSum = 90.45})
+
+-----------------------------------------------------
+-- Монада State
+
+-- runState (return 3 :: State String Int) "Hi from State!"
+
+tick :: State Int Int
+tick = do 
+  n <- get
+  put (n+1)
+  return n
+
+succ' :: Int -> Int
+succ' n = execState tick n
+
+plus :: Int -> Int -> Int
+plus n x = execState (sequence $ replicate n tick) x
+ 
+ 

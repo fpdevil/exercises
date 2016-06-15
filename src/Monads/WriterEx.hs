@@ -204,3 +204,11 @@ changeLogCase c b
 -- construct a Writer on the result of the function
 logCase :: Char -> Bool -> Writer String (Char, Bool)
 logCase c b = writer (changeLogCase c b)
+
+----------------------------------------------------------------------
+-- Inside a Writer you can't inspect what has been written, until you run
+-- (or "unwrap") the  monad, using execWriter or  runWriter. However, you
+-- can use  listen to inspect what  some sub-action wrote to  the writer,
+-- before the value is appended to the writer state, and you can use pass
+-- to modify what is written.
+--

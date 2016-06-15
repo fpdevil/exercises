@@ -1,12 +1,13 @@
 **Haskell Functor, Applicative and Monad Types**
 
->  *Haskell **(->)** as an instance of **Functor***
+>  **Haskell** **(->)** as an instance of **Functor**
 
 ```haskell
 instance Functor ((->) r) where
-    fmap f g = (\x -> f (g x))
+    fmap f g = \x -> f (g x)
 ```
-The above version stems from the below definition of fmap
+The above version stems from the below definition of fmap, if we
+consider ((->) r) as (r ->)
 
 ```haskell
 fmap :: (a -> b) -> f a -> f b
@@ -15,7 +16,7 @@ if  f  =  (->) r then
 ```haskell
 fmap :: (a -> b) -> ((->) r) a -> ((->)r) b
 
--- which is same as
+-- which can be written as below
 
 fmap :: (a -> b) -> (r -> a) -> (r -> b)
 ```
@@ -25,49 +26,93 @@ which is same as function composition. So, another way of writing the Functor in
 instance Functor ((->) r) where
     fmap = (.)
 ```
->  *Haskell **(->)** as an instance of **Appicative***
-
-**Haskell Functor, Applicative and Monad Types**
-
->  *Haskell **(->)** as an instance of **Functor***
-
-```haskell
-instance Functor ((->) r) where
-    fmap f g = (\x -> f (g x))
-```
-The above version stems from the below definition of fmap
-
-```haskell
-fmap :: (a -> b) -> f a -> f b
-```
-if  f  =  (->) r then
-```haskell
-fmap :: (a -> b) -> ((->) r) a -> ((->)r) b
-
--- which is same as
-
-fmap :: (a -> b) -> (r -> a) -> (r -> b)
-```
-which is same as function composition. So, another way of writing the Functor instance is
-
-```haskell
-instance Functor ((->) r) where
-    fmap = (.)
-```
-
->  *Haskell **(->)** as an instance of **Appicative***
+>  **Haskell** **(->)** as an instance of **Appicative**
 
 **(->)** is made an instance of the Applicative as follows
 
 ```haskell
 instance Applicative ((->) r) where
     pure x = (\_ -> x)
-    -- this is same as
-    -- pure = const
+    -- this is same as pure = const
     f <*> g = (\x -> f x (g x))
 ```
 
+>  **Haskell** **(->)** as an instance of **Monad**
+**(->)** is made an instance of the Monad as follows
 
+```haskell
+instance Monad ((->) r) where
+    return x = (\_ -> x)
+    -- this is same as return = const
+    g >>= f = \x -> f (g x) x
+    -- or
+    (g >>= f) x = f (g x) x
+```
+
+---
+> **Some identities**
+
+(g >>= f) = \x -> f (g x) x
+
+or
+
+(g >>= f) x = f (g x) x
+
+considering  
+g :: m a
+
+f :: a -> m b
+
+```haskell
+    g :: r -> a
+    f :: a -> r -> b
+    -- So both g and f are functions, with an argument of type x which
+    -- permeates everything.
+```
+---
+
+>*Following is also an interesting identity*
+
+Kleisli Arrows
+
+```haskell
+f <=< g = \x -> g x >>= f
+f >=> g = \x -> f x >>= g
+
+-- or equally
+
+(f <=< g) x = g x >>= f
+(f >=> g) x = f x >>= g
+```
+
+>*Every Monad is a Functor. So with >>= we can deduce fmap*
+```haskell
+    fmap f x = x >>= (return . f)
+```
+
+Specialized for ((->) r)
+
+```haskell
+    fmap f x r = (x >>= (const . f)) r
+               = (const . f) (x r) r
+               = const (f (x r)) r
+               = f (x r)
+               = (f . x) r
+```
+
+>*join function*
+
+The join function is the conventional monad join operator. It is used to remove one level of monadic structure, projecting its bound argument into the outer level. 
+
+```haskell
+    join x r = x r r
+
+    join x r = (x >>= id) r
+             = (id (x r) r)
+             = (x r) r
+             = x r r
+
+```
 
 > *The above definition can also be visualized as follows*
 ```haskell

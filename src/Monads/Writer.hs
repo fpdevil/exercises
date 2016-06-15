@@ -6,7 +6,7 @@ module Writer where
    File        : Writer.hs
    Description : A test of Writer Monad
 --}
-import           Control.Applicative
+import           Control.Applicative ()
 import           Data.Monoid
 
 
@@ -48,11 +48,11 @@ newtype Writer w a = Writer { runWriter :: (a, w) } deriving (Show)
 
 -- constructor for the Writer
 writer :: (a, w) -> Writer w a
-writer = undefined
+writer = Writer
 
 -- Functor instance of Writer
 instance Functor (Writer w) where
-    fmap f (Writer (a, w)) = Writer (f a, w)
+    fmap f (Writer (a, w)) = writer (f a, w)
 
 -- Applicative instance of Writer
 instance (Monoid w) => Applicative (Writer w) where
@@ -72,6 +72,24 @@ instance (Monoid w) => Monad (Writer w) where
 tell :: (Monoid w) => w -> Writer w ()
 tell x = Writer ((), x)
 
+-- listen x is an action that executes the action x and adds
+-- its output to the value of the computation. listen listens
+-- to a monad acting, and returns what the monad "said".
+listen :: (Monoid w) => Writer w a -> Writer w (a, w)
+listen x = Writer ((a, w), w)
+           where
+           (a, w) = runWriter x
+
+-- pass lets you provide a writer transformer which changes internals of
+-- the written object.
+-- pass x is an action that executes the action x, which returns a value
+-- and a function, and returns the value, applying the function to the output.
+pass :: (Monoid w) => Writer w (a, w -> w) -> Writer w a
+pass x = Writer (a, f w)
+         where
+         ((a, f), w) = runWriter x
+
+
 -- clearing the Writer declaration
 clear :: (Monoid w) => Writer w ()
 clear = Writer ((), mempty)
@@ -87,3 +105,10 @@ compute = fst . runWriter
 logs :: Writer w a -> w
 logs = snd . runWriter
 
+-- Extract the output from a writer computation.
+execWriter :: Writer w a -> w
+execWriter m = snd (runWriter m)
+
+-- Map both the return value and output of a computation using the given function.
+mapWriter :: ((a, w) -> (b, v)) -> Writer w a -> Writer v b
+mapWriter f m = Writer $ f (runWriter m)
