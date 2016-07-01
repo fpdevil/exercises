@@ -1,12 +1,12 @@
 module Example2 where
 
 
-{--|
+{-|
    Author      : Sampath
    Maintainer  :
    File        : Example2.hs
 
---}
+-}
 
 import           Control.Applicative
 import           Control.Monad       hiding (ap, filterM, filterM, foldM,

@@ -1,3 +1,16 @@
+-----------------------------------------------------------------------------
+-- |
+-- Module      :  Stack
+-- Copyright   :  
+-- License     :  see libraries/base/LICENSE
+--
+-- Maintainer  :  
+-- Stability   :  internal
+-- Portability :  
+--
+-- Basic Stack data structure.
+--
+-----------------------------------------------------------------------------
 module Stack (
 Stack,
 emptyStack,

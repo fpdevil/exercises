@@ -1,16 +1,17 @@
 module Writer where
 
-{--|
+{-|
    Author      : Sampath
    Maintainer  :
    File        : Writer.hs
-   Description : A test of Writer Monad
---}
+   Description : A test of Writer Monad. Simple Writer Monad implementation
+-}
 import           Control.Applicative ()
 import           Data.Monoid
 
-
-
+----------------------------------------------------------------------
+-- examples without the actual Writer Monad
+--
 isBig :: Int -> (Bool, String)
 isBig x = (x > 9, "Compared with a value 9")
 
@@ -19,7 +20,7 @@ applyLog' (x, xlog) f = (y, xlog ++ ylog)
                         where
                         (y, ylog) = f x
 
--- applyLog with Monoids
+-- applyLog using Monoids
 applyLog :: (Monoid m) => (a, m) -> (a -> (b, m)) -> (b, m)
 applyLog (x, xlog) f = (y, xlog `mappend` ylog)
                        where
@@ -56,25 +57,35 @@ instance Functor (Writer w) where
 
 -- Applicative instance of Writer
 instance (Monoid w) => Applicative (Writer w) where
-    pure a = Writer (a, mempty)
+    pure a = Writer (a, mempty) -- pure returns a minimal default context
     Writer (f, wf) <*> Writer (a, wa) = Writer (f a, wf `mappend` wa)
 
 -- Monad instance of Writer
 instance (Monoid w) => Monad (Writer w) where
-    return x = Writer (x, mempty)
+    return x = Writer (x, mempty) -- similar to the pure
     (Writer (x, u)) >>= f = Writer (y, u `mappend` v)
                             where
                             Writer (y, v) = f x
 
--- tell is the way to add some decoration. Using tell in the context of a Monad
--- will create a new writer with a content of () (unit) and the given decoration.
--- It will then be considered during subsequent bind calls.
+--
+-- tell is the way to add some decoration. Using tell in the context of a
+-- Monad will  create a  new writer with  a content of  () (unit)  and the
+-- given decoration.  It  will then be considered  during subsequent bind
+-- calls.
 tell :: (Monoid w) => w -> Writer w ()
 tell x = Writer ((), x)
 
--- listen x is an action that executes the action x and adds
--- its output to the value of the computation. listen listens
--- to a monad acting, and returns what the monad "said".
+----------------------------------------------------------------------
+-- Inside a Writer you can't inspect what has been written, until you run
+-- (or "unwrap") the  monad, using execWriter or  runWriter. However, you
+-- can use  listen to inspect what  some sub-action wrote to  the writer,
+-- before the value is appended to the writer state, and you can use pass
+-- to modify what is written.
+----------------------------------------------------------------------
+
+-- listen x is an  action that executes the action x  and adds its output
+-- to the value of the computation. listen listens to a monad acting, and
+-- returns what the monad "said".
 listen :: (Monoid w) => Writer w a -> Writer w (a, w)
 listen x = Writer ((a, w), w)
            where

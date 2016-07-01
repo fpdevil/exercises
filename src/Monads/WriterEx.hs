@@ -1,11 +1,11 @@
 module WriterEx where
 
-{--|
+{-|
    Author      : Sampath
    Maintainer  :
    File        : WriterEx
-   Description : Examples in Writer Monad
---}
+   Description : Examples using the Writer Monad
+-}
 
 import           Control.Monad.Writer
 import qualified Data.Char            as C
@@ -142,7 +142,7 @@ toh src aux target n
     | otherwise = do
       -- move the top n-1 pegs from source to auxilliary via target
       x <- toh src target aux (n - 1)
-      -- move the nth peg from source to target
+      -- move the nth peg from source to target which is a single peg
       toh src aux target 1
       -- move the (n-1) pegs from auxilliary to target via source
       y <- toh aux src target (n - 1)
@@ -156,7 +156,7 @@ showMoves (n, moves) = do
     putStrLn $ "Solved the TOH with " ++ show n ++ " moves!!!"
     -- putStrLn $ L.intercalate ", " moves
     mapM_ print moves
-    putStrLn " --------"
+    putStrLn "--------"
 
 hanoi :: Int -> IO ()
 hanoi n = showMoves $ runWriter (toh A B C n)
@@ -212,3 +212,75 @@ logCase c b = writer (changeLogCase c b)
 -- before the value is appended to the writer state, and you can use pass
 -- to modify what is written.
 --
+-- Ex: Log an action only if the log produced by the Writer satisifies a
+-- predicate condition.
+--
+deleteOn :: (Monoid w) => (w -> Bool) -> Writer w a -> Writer w a
+deleteOn predicate m = pass $ do
+    (a, w) <- listen m
+    if predicate w
+       then return (a, id)
+       else return (a, const mempty)
+
+-- 2nd way
+deletedOn :: (Monoid w) => (w -> Bool) -> Writer w a -> Writer w a
+deletedOn predicate m = pass $ do
+          a <- m
+          return (a, \w -> if predicate w then mempty else w)
+
+logTwo :: Writer [String] ()
+logTwo = do
+       deleteOn ((> 5) . length . head) $ tell ["basket"]
+       deletedOn ((> 5) . length . head) $ tell ["ball"]
+       deleteOn ((== 3) . length . head) $ tell ["pie"]
+
+-- λ>runWriter logTwo
+-- ((),["basket"])
+-- --------------------------------------------------------------------
+-- Monad  stack for  the application  uses  IO, wrapped  in a  logging
+-- Writer    Using    WriterT    Writer    transformation    as    per
+-- http://stackoverflow.com/questions/7630350/writer-vs-writert-in-haskell
+-- The difference  is that  Writer is  a monad,  whereas WriterT  is a
+-- monad transformer, i.e.  you give it some underlying  monad, and it
+-- gives you  back a new monad  with "writer" features on  top. If you
+-- only need the writer-specific features, use Writer.  If you need to
+-- combine its effects with some other monad, such as IO, use WriterT.
+--
+
+type App a = WriterT [String] IO a
+
+-- utility to write to the log
+logMsg :: String -> App ()
+logMsg msg = tell [msg]
+
+-- get an input from the user and log the same
+getUserInput :: App Int
+getUserInput = do
+    logMsg "getting the user data"
+    m <- liftIO getLine
+    logMsg $ "got line: " ++ show m
+    (return . read) m
+
+-- Use getUserInput and increment the result by 9
+app :: App Int
+app = do
+    m <- getUserInput
+    return (m + 9)
+
+-- Now, for some reason inside app the we want to know what messages getUserInput
+-- wrote to the log. We can do that with listen function
+app' :: App Int
+app' = do
+    (m, logm) <- listen getUserInput
+    let numLogLines = length logm
+    logMsg $ "getUserInput logged the message " ++ show numLogLines ++ " lines"
+    return (m + 1)
+
+-- Main method for running and printing the log
+main :: IO ()
+main = do
+    (res, logm) <- runWriterT app
+    print $ "Result: " ++ show res
+    putStrLn "Log: "
+    mapM_ putStrLn logm
+

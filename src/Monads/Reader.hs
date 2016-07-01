@@ -18,7 +18,7 @@ module Reader where
                  function
 --}
 
-import           Control.Applicative
+import           Control.Applicative ()
 import           Control.Monad       hiding (guard)
 
 ----------------------------------------------------------------------
@@ -39,7 +39,8 @@ newtype Reader e a = Reader { runReader :: e -> a }
 
 -- Constructor for computations in the reader monad
 reader :: (e -> a) -> Reader e a
-reader = Reader . id
+reader = Reader
+-- reader = Reader . id
 
 -- Reader as a Functor
 instance Functor (Reader e) where

@@ -14,6 +14,8 @@ module ReaderEx where
 import           Control.Monad
 import           Control.Monad.Reader
 import qualified Data.Char            as C
+import           System.Environment
+import           System.IO
 
 ----------------------------------------------------------------------
 --
@@ -73,6 +75,7 @@ tom = do
 
 jerry :: Reader String String
 jerry = do
+      -- again ask for the environment if access is needed
       env <- ask
       return (env ++ " This is Jerry the Mouse.")
 
@@ -88,3 +91,48 @@ runJerryRun = runReader tomAndJerry "Who is this?"
 -- λ> putStrLn runJerryRun
 -- Who is this? This is Tom the Cat.
 -- Who is this? This is Jerry the Mouse.
+----------------------------------------------------------------------
+-- another example
+-- accessing application configuration – and working our way to effectful
+-- bliss, starting with the  first principles
+
+data AppConfiguration = AppConfiguration { logFile      :: FilePath
+                                         , version      :: String
+                                         , maxMsgLength :: Int
+                                         } deriving (Show, Read)
+
+-- At first this configuration will be shared throughout the application
+-- by passing the configuration to every function that needs it. The
+-- following are 2 contrived examples of the same.
+
+-- first, Initializes an application log file handle. It needs the log
+-- file path and the version from the config.
+-- opens a handle as specified in the config and writer preamble
+initLogFile :: String -> AppConfiguration -> IO Handle
+initLogFile preamble config = do
+    handle <- openFile (logFile config) WriteMode
+    hPutStrLn handle (preamble ++ ", version: " ++ version config)
+    return handle
+
+-- the application deals with messages under a certain max length
+-- the validateMsg function will enforce such a condition
+validateMsg :: String -> AppConfiguration -> Either String ()
+validateMsg msg config = if length msg > maxMsgLength config
+                         then Left ("Message too long " ++ msg)
+                         else Right ()
+
+-- In both the above functions we are passong the AppConfiguration
+-- as an argument. This is the manual way of doing things.
+
+-- specify a type synonymn for a function which takes the AppConfiguration
+-- value and returns an a
+type ConfigReader a = AppConfiguration -> a
+
+initLogFileTS :: String -> ConfigReader (IO Handle)
+initLogFileTS = initLogFile
+
+validateMsgTS :: String -> ConfigReader (Either String ())
+validateMsgTS = validateMsg
+
+-- using the above kind of formalization, we get the explicit argument
+-- out of the signture.

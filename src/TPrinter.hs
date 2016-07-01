@@ -1,6 +1,6 @@
 module TPrinter (main) where
 
-{--|
+{-|
    Author      : Sampath
    Maintainer  :
    File        : TPrinter.hs
@@ -23,7 +23,7 @@ module TPrinter (main) where
 
    Compilation : ghc -O -o tprinter --make TPrinter.hs
    Usage       : ./tprinter [dir...]
---}
+-}
 
 -- imports
 ----------------------------------------------------------------------
@@ -44,8 +44,8 @@ browse path parent link arm node = do
                 "" -> undefined ""
                 "`" -> "    "
                 _ -> "|   "
-                
-browseChild path parent = 
+
+browseChild path parent =
 
 -- treeList function scans all the directories and then prints the
 -- the tree structure. It does IO operations and is impure
