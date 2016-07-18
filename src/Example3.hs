@@ -7,10 +7,11 @@ import qualified Data.List     as L
 ----------------------------------------------------------------------
 -- Sheep Cloning Experiment
 ----------------------------------------------------------------------
---  Sheep have  parents; most  have two, but  cloned sheep  (e.g., Dolly)
+-- Sheep have  parents; most  have two, but  cloned sheep  (e.g., Dolly)
 -- have  only one,  and the  first  sheep (called  Adam and  Eve in  this
 -- example) have no parents (or at  least their parents were not sheep!) So
 -- the mother and father functions have to be of type Sheep -> Maybe Sheep
+--
 data Sheep = Sheep { name   :: String
                    , mother :: Maybe Sheep
                    , father :: Maybe Sheep
@@ -19,6 +20,7 @@ data Sheep = Sheep { name   :: String
 -- Computation of Grand parents, Great Grand parents etc requires dealing
 -- with the non determinism like Nothing possibility. So, inorder to
 -- compute the Maternal Grand Father, we have to do something like
+--
 maternalGrandFather :: Sheep -> Maybe Sheep
 maternalGrandFather sheep = case mother sheep of
                                 Nothing -> Nothing
@@ -64,13 +66,16 @@ dolly  = Sheep "Dolly" (Just molly) Nothing
 -- Print Dolly's maternal grand father
 -- Writing the functions in terms of Monads
 maternalGrandFatherM :: Sheep -> Maybe Sheep
-maternalGrandFatherM sheep = return sheep >>= mother >>= father
+maternalGrandFatherM sheep = mother sheep >>= father
+-- maternalGrandFatherM sheep = return sheep >>= mother >>= father
 
 fathersMaternalGrandmotherM :: Sheep -> Maybe Sheep
-fathersMaternalGrandmotherM sheep = return sheep >>= father >>= mother >>= mother
+fathersMaternalGrandmotherM sheep = father sheep >>= mother >>= mother
+-- fathersMaternalGrandmotherM sheep = return sheep >>= father >>= mother >>= mother
 
 mothersPaternalGrandfatherM :: Sheep -> Maybe Sheep
-mothersPaternalGrandfatherM sheep = return sheep >>= mother >>= father >>= father
+mothersPaternalGrandfatherM sheep = mother sheep >>= father >>= father
+-- mothersPaternalGrandfatherM sheep = return sheep >>= mother >>= father >>= father
 
 -- find an ancestor by tracing a list of mother/father relationships via foldM
 -- traceFamily is a generic function to find an ancestor

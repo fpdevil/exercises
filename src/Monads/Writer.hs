@@ -37,7 +37,7 @@ addDrink _       = ("vodka", Sum 33)
 
 ----------------------------------------------------------------------
 --
--- The Writer monad depends on two types. a is the type of the data
+-- The Writer monad depends on two types. a is the type of the data to be
 -- stored into the monad, and w is the type of the additional information
 -- (decoration) which is attached to the monad.
 --
@@ -47,7 +47,8 @@ addDrink _       = ("vodka", Sum 33)
 --
 newtype Writer w a = Writer { runWriter :: (a, w) } deriving (Show)
 
--- constructor for the Writer
+-- constructor for the Writer computation from a (result, output) pair
+-- its the inverse of runWriter
 writer :: (a, w) -> Writer w a
 writer = Writer
 
@@ -66,6 +67,7 @@ instance (Monoid w) => Monad (Writer w) where
     (Writer (x, u)) >>= f = Writer (y, u `mappend` v)
                             where
                             Writer (y, v) = f x
+
 
 --
 -- tell is the way to add some decoration. Using tell in the context of a

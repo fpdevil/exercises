@@ -37,7 +37,7 @@ validNumbers = [2 .. 99]
 factorPairsTable :: [[(Int, Int)]]
 factorPairsTable = map funp [0 ..]
               where
-              funp n = [(a, b) | a <- validNumbers, b<- validNumbers, a >= b, a * b == n]
+              funp n = [(a, b) | a <- validNumbers, b <- validNumbers, a >= b, a * b == n]
 
 factorPairs :: Int -> [(Int, Int)]
 factorPairs 0 = []
@@ -45,7 +45,7 @@ factorPairs p = factorPairsTable !! p
 
 -- Number Summands table
 -- Given any number s, find all the summands a and b of the number
--- satisfying the condition a >= b and a + b == p and return pairs (a, b
+-- satisfying the condition a >= b and a + b == p and return pairs (a, b)
 --
 summandPairsTable :: [[(Int, Int)]]
 summandPairsTable = map funs [0 .. ]

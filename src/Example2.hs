@@ -9,8 +9,8 @@ module Example2 where
 -}
 
 import           Control.Applicative
-import           Control.Monad       hiding (ap, filterM, filterM, foldM,
-                                      sequence)
+import           Control.Monad       hiding (ap, filterM, filterM, foldM, liftM,
+                                      sequence, unless, when)
 import           Control.Monad.Error hiding (filterM, foldM, sequence)
 import           Data.Monoid
 import           Prelude             hiding (sequence, sequenceA)
@@ -148,13 +148,29 @@ ap mf mx = do
    return (f x)
 
 filterM :: (Monad m) => (a -> m Bool) -> [a] -> m [a]
+filterM _ [] = return []
 filterM p (x : xs) = do
         l <- p x
         m <- filterM p xs
-        return (if l then (x : m) else m)
+        return (if l then x : m else m)
 
+-- implement a custom foldM function, which is a monadic version of
+-- the standard left fold
 foldM :: (Monad m) => (a -> b -> m a) -> a -> [b] -> m a
 foldM f a (x : xs) = f a x >>= (\y -> foldM f y xs)
+
+-- conditional execution of Monadic computations
+when :: (Monad m) => Bool -> m () -> m ()
+when f s = if f then s else return ()
+
+unless :: (Monad m) => Bool -> m () -> m ()
+unless f = Example2.when (not f)
+
+-- Lifting is a monadic operation that converts a non-monadic function
+-- into an equivalent function that operates on monadic values
+liftM :: (Monad m) => (a -> b) -> (m a -> m b)
+liftM f x = x >>= \y -> return (f y)
+
 ----------------------------------------------------------------------
 
 compose :: [a -> a] -> a -> a
@@ -226,3 +242,15 @@ ok = Div (Div (Val 2012) (Val 2)) (Val 12)
 err :: Expr
 err = Div (Val 2) (Div (Val 1) (Div (Val 2) (Val 3)))
 
+----------------------------------------------------------------------
+-- allCombinations returns a list containing the result of
+-- folding the binary operator through all combinations
+-- of elements of the given lists
+-- For example, allCombinations (+) [[0,1],[1,2,3]] would be
+-- [0+1,0+2,0+3,1+1,1+2,1+3], or [1,2,3,2,3,4]
+-- and allCombinations (*) [[0,1],[1,2],[3,5]] would be
+-- [0*1*3,0*1*5,0*2*3,0*2*5,1*1*3,1*1*5,1*2*3,1*2*5], or [0,0,0,0,3,5,6,10]
+
+allCombinations :: (a -> a -> a) -> [[a]] -> [a]
+allCombinations _ [] = []
+allCombinations f (x : xs) = foldl (liftM2 f) x xs

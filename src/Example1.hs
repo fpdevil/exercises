@@ -24,7 +24,7 @@ rotChar n c
         | otherwise = c
         where
         rotCase :: Char -> Char -> Char
-        rotCase base char = chr (ord base + (ord char -ord base + n) `mod` 26)
+        rotCase base char = chr (ord base + (ord char - ord base + n) `mod` 26)
 
 -- Inorder to rotate the entire String instead of the Char, we have to lift
 -- from rotChar :: Char -> Char
@@ -33,7 +33,7 @@ rot :: Int -> String -> String
 rot n = map (rotChar n)
 
 -- Suppose we want to implement other ciphers.
--- For example, the Caesar cipher is rot 3, and would be decoded by rot 23 (or rot -3!).
+-- For example, the Caesar cipher is rot 3, and would be decoded by rot 23 (or rot-3 !).
 
 rot13 :: IO ()
 rot13 = do
@@ -327,7 +327,7 @@ divisors n = filter (`divides` n) [1 .. abs n]
 ugly :: [Integer]
 ugly = 1 : merge (map (2*) ugly) (map (3*) ugly) (map (5*) ugly)
        where
-       merge xxs@ (x :xs) yys@ (y :ys) zzs@ (z :zs)
+       merge xxs@(x : xs) yys@(y : ys) zzs@(z : zs)
            | x < y && x < z = x : merge xs yys zzs
            | y < x && y < z = y : merge xxs ys zzs
            | z < x && z < y = z : merge xxs yys zs
@@ -338,19 +338,35 @@ ugly = 1 : merge (map (2*) ugly) (map (3*) ugly) (map (5*) ugly)
 uglynum :: IO ()
 uglynum = putStrLn $ "The 1500'th ugly number is " ++ show (ugly !! 1499) ++ "."
 
+-- λ> uglynum
+-- The 1500'th ugly number is 859963392.
+-- First 20 ugly numbers
+-- λ> 1 : map (ugly !!) [1 .. 20]
+-- [1,2,3,4,5,6,8,9,10,12,15,16,18,20,24,25,27,30,32,36,40]
+-----------------------------------------------------------------------
 -- Parenthesis balance check in Haskell
 -- Check if an expression containing parenthesis
 -- {} [] () is balanced
-checkString :: String -> Bool
-checkString str = checkStack str []
+isBalanced :: String -> Bool
+isBalanced c = checkStack c []
 
 checkStack :: String -> String -> Bool
 checkStack [] s = null s
 checkStack (x : xs) s
     | x == '{' || x == '[' || x == '('  = checkStack xs (x : s)
     | otherwise                    = case s of
-                                        [] -> False
+                                        []     -> False
                                         z : zs -> ((x == '}' && z == '{') ||
-                                                  (x == ']' && z == '[') ||
-                                                  (x == ')' && z == '(')) &&
-                                                 checkStack xs zs
+                                                   (x == ']' && z == '[') ||
+                                                   (x == ')' && z == '(')) &&
+                                                  checkStack xs zs
+
+-- λ> isBalanced "[{}]"
+-- True
+-- λ> isBalanced "[{}])"
+-- False
+-- λ> isBalanced "[{(}])"
+-- False
+-- λ> isBalanced "([{}])"
+-- True
+-----------------------------------------------------------------------
