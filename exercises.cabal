@@ -21,7 +21,8 @@ library
                        aeson,
                        aeson-pretty,
                        text,
-                       bytestring
+                       bytestring,
+                       containers
   default-language:    Haskell2010
 
 executable exercises-exe

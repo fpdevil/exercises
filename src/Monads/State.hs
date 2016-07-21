@@ -1,27 +1,32 @@
---
---   Author      : Sampath
---   Maintainer  :
---   File        : State.hs
---   Description : State Monad implementation
---
---                 The  concept  of state  refers  to  a function/computation  global  or
---                 non-local state  of memory  at any  given time. When  the output  of a
---                 function/computation  depends  solely on  its  inputs,  we say  it  is
---                 stateless — an example of this is combinatory logic.  Conversely, when
---                 the output depends not only on  the received input but also on history
---                 of previous executions,  we say it is  stateful — this is  the case in
---                 sequential  logic.  Notice  variables  local to  some  scope  are  not
---                 considered state as they die together with their scope and thus cannot
---                 keep history  of previous executions.  So we only consider  global and
---                 non-local variables to be state.
---
---                 A State  is one or  more variables that  are required to  perform some
---                 computation  but  are   not  among  the  arguments   of  the  relevant
---                 function. The State  monad is a built in monad  in Haskell that allows
---                 for chaining of  a state variables (which may  be arbitrarily complex)
---                 through a series of function calls, to simulate stateful code.
---
---
+{-
+
+   Author      : Sampath
+   Maintainer  :
+   File        : State.hs
+   Description : State Monad implementation
+
+   The  concept  of state  refers  to  a function/computation  global  or
+   non-local state  of memory  at any  given time. When  the output  of a
+   function/computation  depends  solely on  its  inputs,  we say  it  is
+   stateless — an example of this is combinatory logic.  Conversely, when
+   the output depends not only on  the received input but also on history
+   of previous executions,  we say it is  stateful — this is  the case in
+   sequential  logic.  Notice  variables  local to  some  scope  are  not
+   considered state as they die together with their scope and thus cannot
+   keep history  of previous executions.  So we only consider  global and
+   non-local variables to be state.
+
+   A State  is one or  more variables that  are required to  perform some
+   computation  but  are   not  among  the  arguments   of  the  relevant
+   function. The State  monad is a built in monad  in Haskell that allows
+   for chaining of  a state variables (which may  be arbitrarily complex)
+   through a series of function calls, to simulate stateful code.
+
+   Concisely here is how a Stateful computation can be depicted
+   (Input State) -> (On Some Operation)
+                 -> {result, New State}
+
+-}
 ------------------------------------------------------------------------
 module State (
 state,
@@ -46,6 +51,7 @@ import           Control.Applicative ()
 -- function, which is then applied to some initial state
 --
 newtype State s a = State { runState :: s -> (a, s) }
+
 --
 --                    input
 --                    state
@@ -64,8 +70,18 @@ newtype State s a = State { runState :: s -> (a, s) }
 state :: (s -> (a, s)) -> State s a
 state = State
 
--- State monad as an instance of a Functor, it lets the state
--- transformation functionality untouched.
+-- State monad as an instance of a Functor.
+-- It lets the state transformation functionality untouched.
+--                      s
+--                      ⇓
+--                   -------
+--                   |     |
+--                   |  ma | ⇒ a
+--                   |     |
+--                   -------
+--                      ⇓
+--                      t
+--
 instance Functor (State s) where
     fmap f ma = State $ \s ->
                       let (a, t) = runState ma s
@@ -73,21 +89,20 @@ instance Functor (State s) where
 
 -- State monad as an Applicative Functor
 --
---
 --                      s
 --                      ⇓
 --                   -------
 --                   |     |
 --                   |  af | ⇒ f ------\
---                   |     |            \
---                   -------             \
---                      ⇓                 \
---                      t                  \
---                      ⇓     af <*> ax     ----> f x
---                      t                  /
---                      ⇓                 /
---                   -------             /
---                   |     |            /
+--                   |     |             \
+--                   -------              \
+--                      ⇓                  \
+--                      t                    \
+--                      ⇓     af <*> ax      ----> f x
+--                      t                    /
+--                      ⇓                  /
+--                   -------              /
+--                   |     |             /
 --                   |  ax | ⇒ x ------/
 --                   |     |
 --                   -------
@@ -101,6 +116,7 @@ instance Applicative (State s) where
                           (x, u) = runState ax t
                       in (f x, u)
 
+--
 -- State as a Monad
 --
 instance Monad (State s) where
@@ -120,7 +136,7 @@ get = State $ \s -> (s, s)
 -- Replace the state inside the monad.
 --
 put :: s -> State s ()
-put x = State $ \_ -> ((), x)
+put x = state $ \_ -> ((), x)
 
 -- modify, modifies the state (read/modify/write).
 --	  Main> :t modify ((+1) :: Int -> Int)

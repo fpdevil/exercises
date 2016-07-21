@@ -1,6 +1,4 @@
 module Example2 where
-
-
 {-|
    Author      : Sampath
    Maintainer  :
@@ -254,3 +252,47 @@ err = Div (Val 2) (Div (Val 1) (Div (Val 2) (Val 3)))
 allCombinations :: (a -> a -> a) -> [[a]] -> [a]
 allCombinations _ [] = []
 allCombinations f (x : xs) = foldl (liftM2 f) x xs
+-----------------------------------------------------------------------
+-- Numerical String to Math Expression
+data Op = Add |
+          Sub |
+          By  |
+          Mul |
+          Lbr |
+          Rbr |
+          Num Double
+          deriving (Eq, Show)
+
+numstr2exp :: String -> [Op]
+numstr2exp "" = []
+numstr2exp (' ' : s) = numstr2exp s
+numstr2exp ('+' : s) = Add : numstr2exp s
+numstr2exp ('-' : s) = Sub : numstr2exp s
+numstr2exp ('/' : s) = By : numstr2exp s
+numstr2exp ('*' : s) = Mul : numstr2exp s
+numstr2exp ('[' : s) = Lbr : numstr2exp s
+numstr2exp (']' : s) = Rbr : numstr2exp s
+numstr2exp xs = case reads xs of
+                  [] -> error "numstr2exp error"
+                  [(x, ys)] -> Num x : numstr2exp ys
+
+-- λ> numstr2exp "4 2 3 + -"
+-- [Num 4.0,Num 2.0,Num 3.0,Add,Sub]
+
+-- Reverse Polish Notation calculation rpn
+rpn :: [Op] -> Double
+rpn xs = calc xs []
+    where
+    calc [] [x]                  = x
+    calc [] _                    = error "rpn calculation error"
+    calc (Num x : ys) zs         = calc ys (x : zs)
+    calc (Add : ys) (x : y : zs) = calc ys (y + x : zs)
+    calc (Sub : ys) (x : y : zs) = calc ys (y - x : zs)
+    calc (By : ys) (x : y : zs)  = calc ys (y / x : zs)
+    calc (Mul : ys) (x : y : zs) = calc ys (y * x : zs)
+    calc _ _                     = error "rpn calculation error"
+
+-- λ> rpn $ numstr2exp "4 5 6 + -"
+-- -7.0
+-- λ> rpn $ numstr2exp "4 5 6 3 + - *"
+-- -16.0

@@ -17,7 +17,7 @@ version = Version [0,1,0,0] []
 bindir, libdir, datadir, libexecdir, sysconfdir :: FilePath
 
 bindir     = "/Users/sampathsingamsetty/software/fp/haskell/sampath/exercises/.stack-work/install/x86_64-osx/lts-6.2/7.10.3/bin"
-libdir     = "/Users/sampathsingamsetty/software/fp/haskell/sampath/exercises/.stack-work/install/x86_64-osx/lts-6.2/7.10.3/lib/x86_64-osx-ghc-7.10.3/exercises-0.1.0.0-2x9MjGOOVAu63yvp861SL2"
+libdir     = "/Users/sampathsingamsetty/software/fp/haskell/sampath/exercises/.stack-work/install/x86_64-osx/lts-6.2/7.10.3/lib/x86_64-osx-ghc-7.10.3/exercises-0.1.0.0-CJMOemCuP1L7k0pZTGtREw"
 datadir    = "/Users/sampathsingamsetty/software/fp/haskell/sampath/exercises/.stack-work/install/x86_64-osx/lts-6.2/7.10.3/share/x86_64-osx-ghc-7.10.3/exercises-0.1.0.0"
 libexecdir = "/Users/sampathsingamsetty/software/fp/haskell/sampath/exercises/.stack-work/install/x86_64-osx/lts-6.2/7.10.3/libexec"
 sysconfdir = "/Users/sampathsingamsetty/software/fp/haskell/sampath/exercises/.stack-work/install/x86_64-osx/lts-6.2/7.10.3/etc"

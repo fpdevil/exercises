@@ -1,14 +1,37 @@
-{--|
+module StateEx where
+
+{-|
    Author      : Sampath
    Maintainer  :
    File        : StateEx
-   Description : Examples in State Monad
---}
-module StateEx where
+   Description : Examples using the State Monad
+-}
 
 import           Control.Monad.State
 import           Prelude             hiding (gcd)
 
+------------------------------------------------------------------------
+-- simple examples
+inc :: State Int Int
+inc = do
+    n <- get
+    put (n + 1)
+    return n
+
+incBy :: Int -> State Int Int
+incBy n = do
+      n <- get
+      modify (+ n)
+      return n
+
+testInc :: IO ()
+testInc = do
+        print $ evalState inc 1
+        print $ execState inc 1
+        print $ runState inc 1
+        print $ runState (withState (+3) inc) 1
+        print $ runState (incBy 5) 10
+        print $ runState (mapState (\(a, s) -> (a + 4, s + 5)) inc) 1
 ------------------------------------------------------------------------
 -- a factorial function which stores the number of recursive operations
 factorial :: Int -> State Int Int

@@ -370,3 +370,48 @@ checkStack (x : xs) s
 -- λ> isBalanced "([{}])"
 -- True
 -----------------------------------------------------------------------
+-- Sieve of Eratosthenes
+sieve :: (Integral a) => [a] -> [a]
+sieve (x : xs) = x : sieve [z | z <- xs, z `mod` x /= 0]
+
+primeList :: [Integer]
+primeList = sieve [2 ..]
+
+showPrimes :: Int -> IO ()
+showPrimes n = print $ take n primeList
+-----------------------------------------------------------------------
+-- FizzBuzz
+aux :: Int -> String
+aux n
+    | n `mod` 15 == 0 = "FizzBuzz"
+    | n `mod` 3 == 0 = "Fizz"
+    | n `mod` 5 == 0 = "Buzz"
+    | otherwise = show n
+
+fizzbuzz :: Int -> [String]
+fizzbuzz n = map aux [1 .. n]
+
+-- λ> fizzbuzz 16
+-- ["1","2","Fizz","4","Buzz","Fizz","7","8","Fizz","Buzz","11","Fizz","13","14","FizzBuzz","16"]
+-----------------------------------------------------------------------
+-- combo
+combo :: Int -> [String]
+combo n = fun 0 0 [] []
+      where
+      fun a b x y
+          | a == n && b == n = reverse x : y
+          | otherwise = if b < a
+                           then fun a (b + 1) ('}' : x) z
+                           else z
+                           where
+                           z = if a < n
+                                  then fun (a + 1) b ('{' : x) y
+                                  else y
+
+-- λ> mapM_ print $ combo 3
+-- "{}{}{}"
+-- "{}{{}}"
+-- "{{}}{}"
+-- "{{}{}}"
+-- "{{{}}}"
+-----------------------------------------------------------------------
