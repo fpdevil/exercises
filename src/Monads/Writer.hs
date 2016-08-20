@@ -4,7 +4,7 @@ module Writer where
    Author      : Sampath
    Maintainer  :
    File        : Writer.hs
-   Description : A test of Writer Monad. Simple Writer Monad implementation
+   Description : Learning with Writer Monad. A Simple Writer Monad implementation
 -}
 import           Control.Applicative ()
 import           Data.Monoid

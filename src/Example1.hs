@@ -1,6 +1,13 @@
 {-# LANGUAGE MultiWayIf #-}
 module Example1 where
 
+{-|
+   Author      : Sampath
+   Maintainer  :
+   File        : Example1.hs
+
+-}  
+
 import           Control.Monad      hiding (guard)
 import           Data.Bits
 import           Data.Char
@@ -9,6 +16,7 @@ import           System.Environment
 import           System.Exit
 import           System.IO
 
+-----------------------------------------------------------------------------------
 signum :: (Num a, Num b, Ord b) => b -> a
 signum x = if | x < 0 -> -1
               | x == 0 -> 0
@@ -121,9 +129,10 @@ isEven x = x .&. 0x1 == 0
 isOdd :: (Bits a, Num a) => a -> Bool
 isOdd x = x .&. 0x1 == 1
 
-{----------------------------------------------------------------------
+{-
+-----------------------------------------------------------------------------------
    BITWISE ADDITION
------------------------------------------------------------------------
+-----------------------------------------------------------------------------------
 --
 -- function for adding two numbers
 -- The following are the 4 cases covered for Bits
@@ -177,8 +186,8 @@ sum = a
 
 The last  carry thing  is required  because carry  of position  n gets
 added to position (n + 1). Hence we shift to left
-
-----------------------------------------------------------------------}
+-----------------------------------------------------------------------------------
+-}
 add :: (Bits a, Num a) => a -> a -> a
 add x y
     | y == 0 = x
@@ -282,7 +291,7 @@ powerset (x : xs) = ps ++ [x : ys | ys <- ps]
                     ps = powerset xs
 
 
---
+-----------------------------------------------------------------------------------
 -- Partitions of an integer
 --
 -- This is a more elaborate combinatoric problem. A partition of N, say 7
@@ -343,7 +352,7 @@ uglynum = putStrLn $ "The 1500'th ugly number is " ++ show (ugly !! 1499) ++ "."
 -- First 20 ugly numbers
 -- λ> 1 : map (ugly !!) [1 .. 20]
 -- [1,2,3,4,5,6,8,9,10,12,15,16,18,20,24,25,27,30,32,36,40]
------------------------------------------------------------------------
+-----------------------------------------------------------------------------------
 -- Parenthesis balance check in Haskell
 -- Check if an expression containing parenthesis
 -- {} [] () is balanced
@@ -369,7 +378,7 @@ checkStack (x : xs) s
 -- False
 -- λ> isBalanced "([{}])"
 -- True
------------------------------------------------------------------------
+-----------------------------------------------------------------------------------
 -- Sieve of Eratosthenes
 sieve :: (Integral a) => [a] -> [a]
 sieve (x : xs) = x : sieve [z | z <- xs, z `mod` x /= 0]
@@ -379,7 +388,7 @@ primeList = sieve [2 ..]
 
 showPrimes :: Int -> IO ()
 showPrimes n = print $ take n primeList
------------------------------------------------------------------------
+-----------------------------------------------------------------------------------
 -- FizzBuzz
 aux :: Int -> String
 aux n
@@ -393,7 +402,7 @@ fizzbuzz n = map aux [1 .. n]
 
 -- λ> fizzbuzz 16
 -- ["1","2","Fizz","4","Buzz","Fizz","7","8","Fizz","Buzz","11","Fizz","13","14","FizzBuzz","16"]
------------------------------------------------------------------------
+-----------------------------------------------------------------------------------
 -- combo
 combo :: Int -> [String]
 combo n = fun 0 0 [] []
@@ -414,4 +423,105 @@ combo n = fun 0 0 [] []
 -- "{{}}{}"
 -- "{{}{}}"
 -- "{{{}}}"
------------------------------------------------------------------------
+
+-----------------------------------------------------------------------------------
+-- Fun with Digits
+-- http://www.cut-the-knot.org/do_you_know/digits.shtml
+-- Start with the  sequence of non-zero digits 123456789.  The problem is
+-- to place plus or  minus signs between them so that  the result of thus
+-- described arithmetic operation will be 100.
+
+-- concat numbers from a list
+concatNums :: [Int] -> [[Int]]
+concatNums [] = [[]]
+concatNums [x] = [[x]]
+concatNums (x : y : ys) = map (x :) (concatNums (y : ys)) ++ concatNums ((x * 10 + y) : ys)
+
+-- λ> mapM_ print $ concatNums [1,2,3,4]
+-- [1,2,3,4]
+-- [1,2,34]
+-- [1,23,4]
+-- [1,234]
+-- [12,3,4]
+-- [12,34]
+-- [123,4]
+-- [1234]
+
+-- Data type definition for a mathematical operator
+data Op = Val Int
+        | Add
+        | Sub
+        deriving (Eq, Show)
+
+-- build a mathematical expression
+crtExpr :: [Int] -> [[Op]]
+crtExpr [x] = [[Val x]]
+crtExpr (x : xs) = map (\ys -> Val x : Add : ys) zs
+                ++ map (\ys -> Val x : Sub : ys) zs
+                where
+                zs = crtExpr xs
+
+-- λ> concatMap crtExpr $ concatNums [1,2]
+-- [[Val 1,Add,Val 2],[Val 1,Sub,Val 2],[Val 12]]
+
+-- evaluate the expression
+evalExpr :: [Op] -> Int
+evalExpr (Val x : xs) = check xs x
+         where
+         check [] c = c
+         check (Add : Val y : ys) c = check ys (c + y)
+         check (Sub : Val y : ys) c = check ys (c - y)
+
+-- λ> map evalExpr $ concatMap crtExpr $ concatNums [1,2]
+-- [3,-1,12]
+-- λ> map evalExpr $ concatMap crtExpr $ concatNums [1,2,3]
+-- [6,0,2,-4,24,-22,15,9,123]
+
+-- split and evaluate expression on a list of integers
+splitEval :: [Int] -> Int -> [[Op]]
+splitEval xs n = filter (\oprtr -> evalExpr oprtr == n)
+                        $ concatMap crtExpr $ concatNums xs
+
+-- λ> mapM_ print $ splitEval [1..9] 100
+-- [Val 1,Add,Val 2,Add,Val 3,Sub,Val 4,Add,Val 5,Add,Val 6,Add,Val 78,Add,Val 9]
+-- [Val 1,Add,Val 2,Add,Val 34,Sub,Val 5,Add,Val 67,Sub,Val 8,Add,Val 9]
+-- [Val 1,Add,Val 23,Sub,Val 4,Add,Val 5,Add,Val 6,Add,Val 78,Sub,Val 9]
+-- [Val 1,Add,Val 23,Sub,Val 4,Add,Val 56,Add,Val 7,Add,Val 8,Add,Val 9]
+-- [Val 12,Add,Val 3,Add,Val 4,Add,Val 5,Sub,Val 6,Sub,Val 7,Add,Val 89]
+-- [Val 12,Sub,Val 3,Sub,Val 4,Add,Val 5,Sub,Val 6,Add,Val 7,Add,Val 89]
+-- [Val 12,Add,Val 3,Sub,Val 4,Add,Val 5,Add,Val 67,Add,Val 8,Add,Val 9]
+-- [Val 123,Sub,Val 4,Sub,Val 5,Sub,Val 6,Sub,Val 7,Add,Val 8,Sub,Val 9]
+-- [Val 123,Add,Val 4,Sub,Val 5,Add,Val 67,Sub,Val 89]
+-- [Val 123,Add,Val 45,Sub,Val 67,Add,Val 8,Sub,Val 9]
+-- [Val 123,Sub,Val 45,Sub,Val 67,Add,Val 89]
+
+-- convert the expression to a string representation of the numerical
+-- calculation of each integers with symbols.
+expr2str :: Int -> [Op] -> String
+expr2str x [] = " = " ++ show x
+expr2str x (y : ys) = case y of
+                        Add   -> " + " ++ expr2str x ys
+                        Sub   -> " - " ++ expr2str x ys
+                        Val z -> show z ++ expr2str x ys
+
+-- λ> mapM_ print $ map (expr2str 100) (splitEval [1..9] 100)
+-- "1 + 2 + 3 - 4 + 5 + 6 + 78 + 9 = 100"
+-- "1 + 2 + 34 - 5 + 67 - 8 + 9 = 100"
+-- "1 + 23 - 4 + 5 + 6 + 78 - 9 = 100"
+-- "1 + 23 - 4 + 56 + 7 + 8 + 9 = 100"
+-- "12 + 3 + 4 + 5 - 6 - 7 + 89 = 100"
+-- "12 - 3 - 4 + 5 - 6 + 7 + 89 = 100"
+-- "12 + 3 - 4 + 5 + 67 + 8 + 9 = 100"
+-- "123 - 4 - 5 - 6 - 7 + 8 - 9 = 100"
+-- "123 + 4 - 5 + 67 - 89 = 100"
+-- "123 + 45 - 67 + 8 - 9 = 100"
+-- "123 - 45 - 67 + 89 = 100"
+-----------------------------------------------------------------------------------
+-- split an integer into a list of integers
+int2list :: (Integral a) => a -> [a]
+int2list 0 = []
+int2list n = a : int2list b
+             where
+             (b, a) = divMod n 10
+
+-----------------------------------------------------------------------------------

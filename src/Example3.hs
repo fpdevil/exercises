@@ -1,5 +1,12 @@
 module Example3 where
 
+{-|
+   Author      : Sampath
+   Maintainer  :
+   File        : Example3.hs
+
+-}
+
 import           Control.Monad
 import qualified Data.List     as L
 

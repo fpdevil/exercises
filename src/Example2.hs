@@ -13,6 +13,7 @@ import           Control.Monad.Error hiding (filterM, foldM, sequence)
 import           Data.Monoid
 import           Prelude             hiding (sequence, sequenceA)
 
+----------------------------------------------------------------------
 --
 -- http://codingbat.com/prob/p104090
 -- Given  n>=0, create an array  with the pattern  {1, 1, 2, 1,  2, 3,
@@ -45,6 +46,7 @@ fibs = 1 : 1 : zipWith (+) fibs (tail fibs)
 fib :: (Num a, Enum a) => Int -> a
 fib = (fibs !!)
 
+----------------------------------------------------------------------
 -- Inserttion Sort
 --
 insertionsort :: (Ord a) => [a] -> [a]
@@ -100,9 +102,9 @@ transpose2 = foldr (zipWith (:)) (repeat [])
 -- transpose2 [] = repeat []
 -- transpose2 (xs : xss) = zipWith (:) xs (transpose2 xss)
 
-{----------------------------------------------------------------------
-- Idemtity as a Functor
-----------------------------------------------------------------------}
+----------------------------------------------------------------------
+-- Idemtity as a Functor
+----------------------------------------------------------------------
 -- An Identity type functor and monad
 newtype Identity i = Identity { runIdentity :: i } deriving (Show)
 
@@ -268,7 +270,7 @@ numstr2exp "" = []
 numstr2exp (' ' : s) = numstr2exp s
 numstr2exp ('+' : s) = Add : numstr2exp s
 numstr2exp ('-' : s) = Sub : numstr2exp s
-numstr2exp ('/' : s) = By : numstr2exp s
+numstr2exp ('/' : s) = By  : numstr2exp s
 numstr2exp ('*' : s) = Mul : numstr2exp s
 numstr2exp ('[' : s) = Lbr : numstr2exp s
 numstr2exp (']' : s) = Rbr : numstr2exp s

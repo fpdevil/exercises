@@ -130,3 +130,40 @@ pjson = do
 --     "id": 123
 -- }
 ----------------------------------------------------------------------
+-- Pairs
+----------------------------------------------------------------------
+newtype Pair = Pair (Int, Int) deriving (Eq)
+
+-- Pair as an instance of the Num
+instance Num Pair where
+  Pair (a, b) + Pair (c, d) = Pair (a + b, c + d)
+  Pair (a, b) - Pair (c, d) = Pair (a - b, c - d)
+  Pair (a, b) * Pair (c, d) = Pair (a * b, c * d)
+  negate (Pair (a, b))      = Pair (-a, -b)
+  abs (Pair (a, b))         = Pair (abs a, abs b)
+  fromInteger 0             = Pair (0, 0)
+
+-- λ> 0 :: Pair
+-- (0, 0)
+-- λ> (0 :: Pair) > 0
+-- False
+
+-- Pair as an instance of the Ord
+instance Ord Pair where
+  Pair (a, b) > 0 = min a b > 0 && max a b > 0
+  Pair (a, b) < 0 = min a b < 0 && max a b < 0
+  -- Pair (a, b) `compare` Pair (c, d) = (a `compare` c) && (b `compare` d)
+
+
+-- Pair as an instance of the Show
+instance Show Pair where
+  show (Pair (a, b)) = "(" ++ show a ++ ", " ++ show b ++ ")"
+
+posEqn :: Int -> Int -> [Pair]
+posEqn x y
+  | x < 0 || y < 0 = []
+  | otherwise = tail [Pair (a, b) | a <- [0 .. x], b <- [0 .. y]]
+
+-- λ> posEqn 2 3
+-- [(0, 1),(0, 2),(0, 3),(1, 0),(1, 1),(1, 2),(1, 3),(2, 0),(2, 1),(2, 2),(2, 3)]
+-- λ> posEqn 0 0

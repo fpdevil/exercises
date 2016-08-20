@@ -83,9 +83,9 @@ Other Prelude modules are much easier with fewer complex dependencies.
            , UnboxedTuples
            , ExistentialQuantification
            , RankNTypes
-  #-}
+#-}
 -- -Wno-orphans is needed for things like:
--- Orphan rule: "x# -# x#" ALWAYS forall x# :: Int# -# x# x# = 0
+--  Orphan rule: "x# -# x#" ALWAYS forall x# :: Int# -# x# x# = 0
 {-# OPTIONS_GHC -Wno-orphans #-}
 {-# OPTIONS_HADDOCK hide #-}
 
@@ -175,13 +175,13 @@ depend on GHC.Tuple, and everything else depends on GHC.Base or Prelude.
 
 #if 0
 -- for use when compiling GHC.Base itself doesn't work
-data  Bool  =  False | True
+data Bool     = False | True
 data Ordering = LT | EQ | GT
-data Char = C# Char#
-type  String = [Char]
-data Int = I# Int#
-data  ()  =  ()
-data [] a = MkNil
+data Char     = C# Char#
+type String   = [Char]
+data Int      = I# Int#
+data ()       = ()
+data [] a     = MkNil
 
 not True = False
 (&&) True True = True
